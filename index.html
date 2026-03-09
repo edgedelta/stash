@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdgeDelta - GitHub Pages Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        header {
+            text-align: center;
+            padding: 4rem 0;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            font-size: 1.25rem;
+            color: #a0a0a0;
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.2);
+        }
+        .card h2 {
+            color: #00d4ff;
+            margin-bottom: 1rem;
+        }
+        .card p {
+            color: #b0b0b0;
+            line-height: 1.6;
+        }
+        .card a {
+            display: inline-block;
+            margin-top: 1rem;
+            color: #7b2cbf;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .card a:hover {
+            color: #00d4ff;
+        }
+        .status {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 1rem;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 8px;
+        }
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: #00ff88;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding: 2rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>EdgeDelta</h1>
+            <p class="subtitle">GitHub Pages Hosting Test</p>
+        </header>
+
+        <div class="cards">
+            <div class="card">
+                <h2>Demo Page</h2>
+                <p>Check out the demo page with interactive features and more examples.</p>
+                <a href="demo.html">View Demo &rarr;</a>
+            </div>
+            <div class="card">
+                <h2>Documentation</h2>
+                <p>Explore the documentation and learn more about the projects in this repository.</p>
+                <a href="#">Coming Soon</a>
+            </div>
+            <div class="card">
+                <h2>API Reference</h2>
+                <p>Technical reference for MCP servers, exporters, and other tools.</p>
+                <a href="#">Coming Soon</a>
+            </div>
+        </div>
+
+        <div class="status">
+            <span class="status-dot"></span>
+            GitHub Pages is working correctly
+        </div>
+
+        <footer>
+            <p>Deployed via GitHub Actions | Last updated: <span id="timestamp"></span></p>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById('timestamp').textContent = new Date().toLocaleString();
+    </script>
+</body>
+</html>
