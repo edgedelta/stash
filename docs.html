@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - EdgeDelta</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #fff;
+            color: #24292e;
+            line-height: 1.6;
+        }
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background: #f6f8fa;
+            border-right: 1px solid #e1e4e8;
+            padding: 1.5rem 1rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar h2 {
+            color: #24292e;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .sidebar a.home-link {
+            display: block;
+            color: #0366d6;
+            text-decoration: none;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e1e4e8;
+            font-size: 0.875rem;
+        }
+        .sidebar a.home-link:hover {
+            text-decoration: underline;
+        }
+        .doc-list {
+            list-style: none;
+        }
+        .doc-list li {
+            margin-bottom: 0.25rem;
+        }
+        .doc-list a {
+            display: block;
+            padding: 0.5rem 0.75rem;
+            color: #24292e;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+        .doc-list a:hover {
+            background: #e1e4e8;
+        }
+        .doc-list a.active {
+            background: #0366d6;
+            color: #fff;
+        }
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 2rem 3rem;
+            max-width: 900px;
+        }
+        .markdown-body {
+            color: #24292e;
+            line-height: 1.6;
+        }
+        .markdown-body h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        .markdown-body h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        .markdown-body h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .markdown-body p {
+            margin-bottom: 1rem;
+        }
+        .markdown-body pre {
+            background: #f6f8fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.85rem;
+            line-height: 1.45;
+        }
+        .markdown-body code {
+            background: #f6f8fa;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.85em;
+        }
+        .markdown-body pre code {
+            background: none;
+            padding: 0;
+        }
+        .markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        .markdown-body th,
+        .markdown-body td {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e1e4e8;
+            text-align: left;
+        }
+        .markdown-body th {
+            background: #f6f8fa;
+            font-weight: 600;
+        }
+        .markdown-body hr {
+            border: none;
+            border-top: 1px solid #e1e4e8;
+            margin: 2rem 0;
+        }
+        .markdown-body ul,
+        .markdown-body ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+        .markdown-body li {
+            margin-bottom: 0.25rem;
+        }
+        .markdown-body a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        .markdown-body a:hover {
+            text-decoration: underline;
+        }
+        .markdown-body blockquote {
+            border-left: 4px solid #dfe2e5;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #6a737d;
+        }
+        .markdown-body strong {
+            font-weight: 600;
+        }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6a737d;
+        }
+        .error {
+            background: #ffeef0;
+            border: 1px solid #f97583;
+            border-radius: 6px;
+            padding: 1rem;
+            color: #cb2431;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            .layout {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <nav class="sidebar">
+            <a href="index.html" class="home-link">&larr; Back to Home</a>
+            <h2>Documentation</h2>
+            <ul class="doc-list" id="docList">
+                <li><span class="loading">Loading...</span></li>
+            </ul>
+        </nav>
+        <main class="main-content">
+            <div class="markdown-body" id="content">
+                <div class="loading">Select a document from the sidebar</div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // List of markdown files - add new files here
+        const markdownFiles = [
+            { name: 'Tantivy ClickHouse Integration', file: 'tantivy-clickhouse-integration.md' }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDocList();
+            const hash = window.location.hash.slice(1);
+            if (hash) {
+                loadMarkdown(hash);
+            } else if (markdownFiles.length > 0) {
+                loadMarkdown(markdownFiles[0].file);
+            }
+        });
+
+        function renderDocList() {
+            const list = document.getElementById('docList');
+            list.innerHTML = markdownFiles.map(doc => `
+                <li>
+                    <a href="#${doc.file}" onclick="loadMarkdown('${doc.file}')">${doc.name}</a>
+                </li>
+            `).join('');
+        }
+
+        async function loadMarkdown(filename) {
+            const content = document.getElementById('content');
+            content.innerHTML = '<div class="loading">Loading...</div>';
+
+            document.querySelectorAll('.doc-list a').forEach(a => {
+                a.classList.toggle('active', a.getAttribute('href') === `#${filename}`);
+            });
+
+            try {
+                const response = await fetch(`markdown/${filename}`);
+                if (!response.ok) {
+                    throw new Error(`Failed to load: ${response.status}`);
+                }
+                const markdown = await response.text();
+                content.innerHTML = marked.parse(markdown);
+                window.location.hash = filename;
+            } catch (error) {
+                content.innerHTML = `<div class="error">Error loading document: ${error.message}</div>`;
+            }
+        }
+
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.slice(1);
+            if (hash) {
+                loadMarkdown(hash);
+            }
+        });
+    </script>
+</body>
+</html>
