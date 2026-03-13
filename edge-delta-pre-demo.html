@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Edge Delta · Pre-Demo Intake</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --black: #080808; --surface: #111111; --surface2: #181818;
+  --border: rgba(255,255,255,0.08); --border-focus: rgba(255,255,255,0.2);
+  --text: #ffffff; --muted: rgba(255,255,255,0.45);
+  --green: #3DFF8F; --green-dim: rgba(61,255,143,0.12);
+  --mono: 'JetBrains Mono', monospace; --sans: 'Space Grotesk', sans-serif;
+}
+html { scroll-behavior: smooth; }
+body { font-family: var(--sans); background: var(--black); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+.gradient-bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 55% at -5% -5%, rgba(34,197,94,0.65) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 45% at 18% 8%, rgba(6,182,212,0.25) 0%, transparent 55%),
+    radial-gradient(ellipse 45% 40% at 50% -8%, rgba(99,102,241,0.3) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 55% at 88% -5%, rgba(239,68,68,0.45) 0%, transparent 55%),
+    radial-gradient(ellipse 35% 40% at 100% 5%, rgba(251,146,60,0.3) 0%, transparent 50%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, rgba(0,0,0,0.5) 30%, transparent 55%);
+  mask-image: linear-gradient(to bottom, black 0%, rgba(0,0,0,0.5) 30%, transparent 55%);
+}
+.page { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: 0 24px 120px; }
+.header { text-align: center; padding: 72px 0 60px; }
+.logo-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 36px; }
+h1 { font-family: var(--sans); font-weight: 700; font-size: clamp(34px,6vw,54px); line-height: 1.07; letter-spacing: -2px; color: #fff; margin-bottom: 18px; }
+.header-sub { font-family: var(--mono); font-size: 13.5px; color: var(--muted); line-height: 1.75; max-width: 520px; margin: 0 auto; }
+.badge { display: inline-block; font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 12px; border-radius: 100px; margin-bottom: 20px; }
+.badge-pre { background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.35); color: #a5b4fc; }
+.badge-post { background: rgba(61,255,143,0.1); border: 1px solid rgba(61,255,143,0.3); color: var(--green); }
+.progress-bar-wrap { position: sticky; top: 0; z-index: 20; padding: 10px 0 0; background: linear-gradient(to bottom, rgba(8,8,8,0.97) 75%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); margin-bottom: 32px; }
+.progress-track { height: 1.5px; background: rgba(255,255,255,0.07); border-radius: 100px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--green), #06b6d4); width: 0%; border-radius: 100px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
+.progress-label { font-family: var(--mono); font-size: 10.5px; color: var(--muted); text-align: right; margin-top: 5px; }
+.section { background: rgba(255,255,255,0.025); border: 1px solid var(--border); border-radius: 10px; padding: 28px 32px; margin-bottom: 12px; transition: border-color 0.2s; }
+.section:hover { border-color: rgba(255,255,255,0.12); }
+.section-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+.section-num { font-family: var(--mono); font-size: 10px; font-weight: 500; color: var(--green); letter-spacing: 0.05em; padding-top: 3px; flex-shrink: 0; }
+.section-title h2 { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 3px; }
+.section-title p { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+.field-grid { display: flex; flex-direction: column; gap: 16px; }
+.field-row { display: grid; grid-template-columns: 195px 1fr; gap: 14px; align-items: start; }
+@media (max-width: 560px) { .field-row { grid-template-columns: 1fr; } .section { padding: 22px 18px; } }
+label.field-label { font-size: 12.5px; font-weight: 500; color: rgba(255,255,255,0.7); padding-top: 9px; line-height: 1.4; }
+label.field-label .hint { display: block; font-family: var(--mono); font-size: 10.5px; color: var(--muted); font-weight: 400; margin-top: 3px; }
+input[type="text"], input[type="email"], input[type="tel"], textarea { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 7px; color: #fff; font-family: var(--sans); font-size: 13.5px; padding: 8px 12px; outline: none; transition: border-color 0.15s, background 0.15s; -webkit-appearance: none; }
+input:focus, textarea:focus { border-color: rgba(255,255,255,0.22); background: rgba(255,255,255,0.06); }
+input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.18); font-family: var(--mono); font-size: 11.5px; }
+textarea { resize: vertical; min-height: 74px; line-height: 1.55; }
+.pill-group { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 2px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 100px; padding: 5px 12px; cursor: pointer; transition: border-color 0.15s, background 0.15s; user-select: none; }
+.pill:hover { border-color: rgba(255,255,255,0.16); }
+.pill input { display: none; }
+.pill span { font-family: var(--mono); font-size: 11.5px; color: rgba(255,255,255,0.5); transition: color 0.15s; }
+.pill.on { border-color: rgba(61,255,143,0.45); background: var(--green-dim); }
+.pill.on span { color: var(--green); }
+.pill-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.2); flex-shrink: 0; transition: background 0.15s; }
+.pill.on .pill-dot { background: var(--green); }
+.doc-block { border: 1px solid rgba(61,255,143,0.15); border-radius: 10px; padding: 24px 28px; margin-top: 28px; background: rgba(61,255,143,0.04); }
+.doc-block h3 { font-family: var(--mono); font-size: 10px; font-weight: 500; color: var(--green); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 16px; }
+.doc-links { display: flex; flex-direction: column; gap: 8px; }
+.doc-link { display: flex; align-items: flex-start; gap: 10px; text-decoration: none; padding: 10px 14px; border-radius: 7px; border: 1px solid var(--border); background: rgba(255,255,255,0.025); transition: border-color 0.15s, background 0.15s; }
+.doc-link:hover { border-color: rgba(61,255,143,0.3); background: rgba(61,255,143,0.06); }
+.doc-link-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.doc-link-text strong { display: block; font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 2px; }
+.doc-link-text span { font-family: var(--mono); font-size: 11px; color: var(--muted); line-height: 1.5; }
+.next-wrap { border: 1px solid var(--border); border-radius: 10px; padding: 28px 32px; margin-top: 28px; background: rgba(255,255,255,0.025); }
+.next-wrap h3 { font-family: var(--mono); font-size: 10px; font-weight: 500; color: var(--green); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 20px; }
+.steps { display: flex; flex-direction: column; }
+.step { display: flex; gap: 18px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+.step:last-child { border-bottom: none; padding-bottom: 0; }
+.step-n { font-family: var(--mono); font-size: 10px; color: var(--green); padding-top: 2px; flex-shrink: 0; }
+.step p { font-size: 13.5px; color: rgba(255,255,255,0.65); line-height: 1.6; }
+.step p strong { color: #fff; font-weight: 600; }
+.cta-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 30; display: flex; justify-content: center; align-items: center; gap: 20px; padding: 14px 24px 22px; background: linear-gradient(to top, rgba(8,8,8,1) 55%, transparent); }
+.btn-save { display: inline-flex; align-items: center; gap: 8px; background: transparent; border: 1.5px solid var(--green); color: var(--green); font-family: var(--sans); font-weight: 600; font-size: 13.5px; padding: 11px 28px; border-radius: 7px; cursor: pointer; transition: background 0.18s, box-shadow 0.18s, transform 0.12s; }
+.btn-save:hover { background: var(--green-dim); box-shadow: 0 0 20px rgba(61,255,143,0.18); transform: translateY(-1px); }
+.btn-save:active { transform: translateY(0); }
+.autosave { font-family: var(--mono); font-size: 10.5px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.autosave-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: background 0.3s; }
+.autosave.live .autosave-dot { background: var(--green); }
+.toast { position: fixed; bottom: 76px; right: 24px; background: var(--surface); border: 1px solid rgba(61,255,143,0.35); color: var(--green); font-family: var(--mono); font-size: 11.5px; padding: 10px 16px; border-radius: 7px; display: flex; align-items: center; gap: 7px; opacity: 0; transform: translateY(10px); transition: opacity 0.25s, transform 0.3s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none; z-index: 100; }
+.toast.show { opacity: 1; transform: translateY(0); }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="gradient-bg"></div>
+<div class="page">
+  <div class="header">
+    <div class="logo-row"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAEIAO4DASIAAhEBAxEB/8QAHAAAAQUBAQEAAAAAAAAAAAAAAAECAwUGBAcI/8QATRAAAQMDAQMFCQ0HAgQHAAAAAQACAwQFEQYhMUESUWFxgQcTIiMycpGxwRUXMzZCUlVWc5Sy0dIUFmKSoaTwNXQIJFOCJkNGo8Lh8f/EABoBAQADAQEBAAAAAAAAAAAAAAABAgMEBgX/xAA0EQACAQICCQEGBgMBAAAAAAAAAQIDEQQxBRITFCFBUVKRMmFxsdHh8AYVFiKBoUJTwfH/2gAMAwEAAhEDEQA/APjJCEIAQhCAEIQgBCEIAQhCAEKeipKmtnEFJA+aQ/JaM/8A4tda9K0tIGy3STv8+/vEfkt848eoIVlNRzM3ZbLX3aTFLEBGD4crzyWN6z27htWxtunbLb2g1DPdGoG8uyIx1Dj25Vk6QuY1jWtiiaMNjYMNA6gm4Q55VGyeGcwM5NLFBTt5o4wAmzVBmHJqIYJxxEkQKj3bEzfuQzK246ctFc3MANBPztHKjJ6Rw7FkrxZ661SYqYsxnyJWbWO7fYVv1LHMWxmF7WyRO2OY4ZBHUhpGq1meVIW3vGk6WraZ7O8Qy7zTyHwT1E7uo/0WPrqOqoqgwVcD4ZB8lw39I5x0odEZKWRAhCELAhCEAIQhACEIQAhCEAIQhACEIQAhCEAIQrqx6brrmGyuxSUp/wDOlGAR/COPqQhtLMpmtc9wa1pc4nAAGSVqbLpGaRoqLtIaSIYIhHwj/wBPbt6ForbQW+zDFDCJJ/lVEm13ZwAUzpHSOLnkk9KGMqvQKVkFFCIKCBlPGN+Btd0k7ymkknJOSh7msbynODRzkqtrbq2MllOOW75x3f8A2hlZyZ3zzRwM5crw0c3EqlrrzKSW07eQPnHeuCeWSZ5dI4uPSoyENY00sxJJ6mY5fI93WUrZ6th8GaQdTkuCgg4QvYsaG9PZiOrbyh88b1dQTRTs5UUjXDoKyDgDvRDJNTu5UTyOhVsZypp5G1S1Daatg/ZrjTtqIuGfKb0g7wqW3XlkmI6jwXc6uGua5vKaQQeZSZNOLMzetHzRtfUWiQ1cI2mI/Ct/V2ehZV7XMcWvaWuBwQRghepMc5hy1xB6FDcrdbruzk1sIjn+TUR7HdvP2pc1jV6nmSFdXzTdfbAZQBU0o29+jG7zhw9XSqVSbpp5AhCEJBCEIAQhCAEIQgBCFLS089VO2CnifLI7c1oyUBEu602mvuk3e6OBzxnDpDsY3rP+FaOzaUhiDZ7tIHu3injP4newLSte2OEQQMZDC3cxgwAhlKolkVdo03bbXiSq5NdVDaMjxbT1ce1WdRPLO7lSOzzDgOoJigq6qnhb4TtqGMm2S4GNuAOdctVcIKcENIe5VlZW1ExLWHksXGGkHYST0qpaNPqSVVVLOTlxDeZQNYSpmx8Sn8lDXLIg5GEvIHMpSNqQhCCPARyQnEIwgIXsCjLF0EJhCA5XMU9LXVVMRyHlzeYoc1Mc1CeDzNFbrtBUgNee9ycxViDlYkswchd9BdZ6bDJcyx9O8IZSp9DVxTPjPgOI6FV3jT1suXKlgAoKk7ctbmN56Rw6x6FPSVlPVNzE8Z+ad4XQrFU3Fnnl1tdbbJQyrhLQfJe05a7qK4l6lymuhdBLGyWF4w5j2hwPpWfu+kopmme0Shj95p5HbP8Atd7D6UNo1U8zGoUtVTz0szoamJ8Ujd7XDBUSGoIQhACUAkgAEk7gErGue9rGAuc44AHErfadtEFkjbUTNZPcSNxGWw9A/i6f8IrKWqiktOk6qZrZ7kTRwOGWtI8Y/s4dvoWppI6Sgg/Z7fA2FhHhO3uf1lOkmkmcXSvLiedNyBvKHO5OWYqa+RkYy92AuOrr2xksiw9448FWzSyyu5UjiT/QISoNnfV3DeyH0queXSHLjk9Kc1uQnhiqaJJEYYSEoYApsJCELERCE8hJhAMISEJ7htSFCpGQkwnFIgGEJCE9IQgIyE0hSEJMICFzUxzdinITHDYhJCxz4ncqNxaRzFW1BenswypHKHzhvVYWphYhVq5soZY5mB8bg4HmTlj4KiendyopC3o4K5obzHKRHP4t/PwKm5m4FpWQU1fD3iugbMzcH48NnUd6y940pUwh09tc6rg+YB41vZx7PQtS1wcAQcp7HOY7lNcQecKRGbieXoXoGoLJBeIDNTMZDcGDOwYE3Qf4un/BgHtcx5Y9pa5pwQRggodEZKSNRoGga+SousjQ4U2GxA8Xnj2D1haUnlOLjtJOSuTTDBBpOlA3zOfIf5iPUAusKG7GE3djJpGRROe44AVJV1kk78NcQzmClu0xkk70w+CN65GMwql4R5scwbFI1qGhStCkuIwKQAJAlygBIlQgGEJuFIU0jagI3Dakx0J5G1BCAiISEKQhNIQEZCMJxCMICMhJhPISEICMhNIUmEhCFSIhIQpCEmEBC5qiczbldJCY5qFiWhuU9M4AkvZzFaWknZUQtkYcghZB7dqstO1BjqTA4+C8bOtSjOceFzRtcWuDgdoWY19RYqYroxga2o8GTk7uWBv7R6itIumCggudM6nqRljXh4BGduCPapKQdncr7L8W7b9m78RXQuey/Fy2/Zu/EV0FVeZEvUUEhzM8/wAR9aUJrvhHecfWnjcpN0KE8FMCcFBI7KMpMr6Ztvcv0NLbaSZ9ky+SFrnH9qm2kjz1lVrKna5w43H08Gk6ifHp/wCnzSlX0571mhPoP+6m/Wj3rNCfQf8AdTfrWaxcOjOD9QYbtl4XzPmMhNwvp73rNCfQf91N+tB7luhPoP8Aupv1q8a8XyY/UGG7ZeF8z5gISYX06e5ZoTP+h/3U360e9ZoT6D/upv1rVSTH6gw3bLwvmfMOEhC+n/es0L9Cf3U3614j3V4dOUWpHWvTdvZTxUmWTyiZ8nfZOI8InAbjGzjnoUnVhNKUsXPUpxf9fMxpCaQpFue5VoU6sdXVVW58VDBE6Nj273TkeD2DPKPYOKlJydkd1evChBzm+CMAQkIXdeLfVWq51FurYjFUU8hje3pB3jnB3rkTI0Uk0miEhIVIU1QQRkIwnIwgGYTXBSEbU0jagIXNRTZZVRuGwh49akISRAd+Z5zfWgNSrSweXL1BVY3K0sHlzdQ9qXMEUdm+Llt+zd+IqclQWX4uW37N34ipyoeZMvUyhcfGO84+tOCjcfGP84+tOBUmw8JwKYClBQsPX2baP9Hof9uz1L4wyvqW290PRsVso4n3+la9kDWuaeVkHHUuTFxckrHntP0qlSMNSLeeX8G1KaVlPfH0V9YKX0O/JIe6Nor6wUvof+S54U30PObpX7H4ZqimkrLe+Jor6w0v8r/ySe+Hor6w0v8AK/8AJdEabG6V+x+GapIst74eivrDS/yv/JHvh6K+sNL/ACv/ACXRAbpX7H4ZB3WtVt0xpt/eHgXCrBjpxxb85/Z68L5ile6SQvcSSTnJK1HdJ1K/VGp56xrj+zR+Kpm8zBx7TtWXcMBaWPZaLwW60Vf1Pi/kdFot9TdrpS22jZy56mURsHAEneegbz0BfVWl7LS6dsVJZqFo5MLRy38Xu+U49JK877gGkv2ajfqeui8bOCykDh5LM4Lu0jHYvWeOV24elZaz5nw9NY3a1NjF8I/H6Hj3/EHpUSws1NRxYkjAjqg35Tfkv6wdh6xzLxLC+ya6mgrKSSmqI2yRyNLXtduIO8L5Y7oOm59L6lntzwTAfGU8mPLYd3o3diriaVv3rmd2g8brw2Es1l7voZwhNIUhCbhcZ94jISYUhCaQgGEJCE8hNQDCki+GZ5w9aed6SL4ZnnD1oDTcArGxfCTdQ9qrSdisbEfGS9Q9qGCKay/Fy2/Zu/EVMdyhsvxctv2bvxFTHcjLSzM84+Md5x9acCmO+Ef5x9aUIajwU4FMBSgoWJE4FRgr3m3dxCzVFHFUOvVwHfGB3JDWbMjPMqynGOZy4rG0sLbaPM8LBS5XvPvG2X6auX8rPySe8bZfpu5ehn5KFUTOP87wnV+DwfKXK94942y/Tdy9DPyR7x1l+m7l6GfkrJ3H51hOr8HhISjevYdV9yvTWnLFUXatvVyMcQ8FoDAXvOxrRs4leOqbHZhcXTxMXKnkh4V/oDTkmqNSwW4bKdvjal3NGCM+nIHas+CvpHuRaUGmtNCSpYPdGuxJOcbWN+Szs39ZWtKnrytyMdJ4vdqN16nwX37DZQxRU8EdPTxtjhiYGRsbua0DAATigKk1dqW3aZpaepuLyGTztiaBv2na7qA2+jnX1OCV2eIjCU5KMVdsuFiO6/pcam0291OwG4UgMlOQNrhxZ2+tbZrg5oc1wcCMgjcUi6dkpxcZcy9CtKjUVSOaPjdBC9D7t2k/cO++61HFi317ySANkcu8t6jtI7V54vg1abpTcJcj32HrRxFNVI5MakIT0mFmbDCE3CkKaQhBGQki+GZ5w9aeQmxjxzPOHrQg0JOxWViPjJuoe1VhVjYvhJeoe1DBFRZvi7bfs3fiKmO5QWf4u277N34ipidik0lmZ1/wj/OPrTkx58Y/zj60uVBoPCUJgKcChA5faFm/0ik+xZ+EL4uyvs6zTRe5FJ41nwLPlD5oWNZXsec/EC/bT/n/AIdxTDvQZov+qz+YJhmiz8Kz+YKIxPNWY9G1M79F/wBVn8wWK7sGrm6b0s9tHKPdCtDoqcg55A2ct/YDs6SF0wjY1oUJ1qipxzZ5j3cdXe7t+9yqKXNvoHFuQdkku5zuobh2rzfimhxJyTtO9ddqoam5XCChpGcuaeQRsbzk/wCZ6lOZ72hRhhqShHJG97iOkxfL8LrWxF1voHB2HN8GWX5Lc8cbz2L6DJztVXpSy0+ntPUlopwMQsHfHD5bz5R9KtF9GhS1InjNIYt4qs5clwXuGF4AJJwBtJPBfNHdN1MdU6lkqY5HfsNOTHSt3At+cQefevS+7nqo2u1Cw0MvJra5uZS07Y4ePa7d6V4SscVUv+xH2dCYPVW3lm8vme8dw7VfunajYa2XNZRtzCXHbJF+Y3eheklfJ1gulVZrtTXOifyZ6d4cBwcOLT0EbF9R2a5QXa001xpXcqKojD29GeC79H1dpDUea+Bw6Ywexq7SOUvicesrJBqLTtXaZ8DvrMxvI8h42td2FfLFyoqi3V81DVRmOaF5Y8HnC+vV5B3f9Lh7I9T0keHtAiqw0bx8l/s9CvpHC68Nos18DTQuN2VTYyyll7/qeNYRhLhGF589YMKapMJuEAxI0eNj84J+EgHjI/OCAus7FY2I+Mm6h7VW52KxsR8ZN1D2oYFRaPi9bvs3fiKlJ2KG0H/w9bvs3fiKlJ2KS0szOvPjH+cfWnZTHnxj/OPrS5UGg7KUFMylQgkCVMaV6vS9xG/1FNFOy7W0CRgeA7l5AP8A2oY1sTRoW2srXPK0L1j3i9RfS9r/APc/Sj3i9RfS9r9Mn6UOd6Twf+xf2eVMTtyvda6Zl0pdha6m4UlXUhgfI2n5REedoByBtI2qiUnbTnGcVOLumKCvbf8Ah/0r3uF+qa2PDntMdG0j5O5z+3cOo868x7nunJtU6lhtzA4U7PGVUg+TGDt7TuHWvqelp4KSlipaaMRwxMDGMA2ADYAurDU9Z6z5Hw9N43Zw2EHxefu+pOCuO+3Sls1nqbpWv5FPTsLnc5PBo6TuC7AvLO7VS6qv0tPZrRaKmShhxLLK3HJledwHQB/U9C+hKThFtHncJRjWqqMnZc/ceO3661V7vFVda12Z6l5djOxjeDR0ALhWl973Wf0HVf0/NHve6z+g6r+n5r5Wyqt+l+D3EcTh4pJTVvejNheodw3Vn7JWO07WyeJndyqYuPkv4t7Vk/e91n9B1X9PzUkOg9bQTMnhstZHLG4OY9pALSNxBzsK2oqtSmpqL8GOJlhsRSdOU1x9qPpNQ1tNBW0ktLUxtkilYWPa7cQVw6XqrjV2Kmmu1HJSV3J5M8bseUN5GOB39qsCvX0kpxT6niJJwlbmj5f11p+bTWpKm2SZdG08uF5GOXGfJPs6wqJfRHde0x+8enTU0sebjQgvjwNsjPlM9o6QvnleU0hg92rNL0vivv2HttHYveaKb9S4P79o3CbhSY6E3C+efQGYSY8Yzzk9NPls85AWvBWNi+Em6h7VXcFY2L4SbqHtQwKe0fF63fZu/EVKdyitHxet32bvxFSlSWlmZuU4meP4j60uU2X4eTzigKDQcCnApgTghA8Ffalo/wBKpP8Abs/CvioL7VtH+lUn+3Z+FSjzn4gdlT/n/h08VSa71HS6W0zU3aow5zByIIyfhJD5LfaegFXfFfNXdy1c3UWpvc+jk5VutxLGOB2SSfKd2bh1dK0XA+To7BvF11F+lcX9+0wlxrqq43CevrZTLU1EhkleeJKhBUa9F7h+kzftRtuNZFm3UDmvORkSS72t/wDkerHHZWEXOVkezr1YYak5vJfdj1XuO6TOmtMslq2AXCsxLOCNrPms7Ac9Z6FuUHehfYhTUVZHga1aVeo6ks2IUh3JSkO5dcImY0pDuSlIdy64RA0pEpSLqhEsBKRB3ppXTCIAheA92DTAseozW08fJoa3MjMDY1/ym+k57ehe/Kn1jY4NRWCe2z4DnDlQvI+DkG4+w9BKx0hgd7otL1Lijv0di3hqyk8nmfMGxNIXTX0lRQ1s1JVRmOaJ5Y9p4EHBCgK8G7p2Z7hNNXRFhNI8NnnJ5CaR4bPOVSSz4KxsXwk3UPaq3grKxfCTdQ9qGRT2j4vW/wCzP4ipTuXNp6US6apcb4nPjPpJ9RC6OKkSzMzPsqZB/EUArqvMPe6kSAeC/wBa5AoNFxHApQUwJyEEjVoo9c6vihZDFqS6RsYAGBtQRyQOAWbaUqlFZU4T9STNG7W+sJG4fqW7uB56tyoCTlRpyMmFOEPSrDwVb2nUt/tNOaa3XitpIS7lFkMxY0nnwOOwehU4SqYtrImUIzVpK5o/351b9Yrp96cl/fnVv1iun3pyzaBvVteXUz3aj2rwaYa41b9Ybp96cj999W/WK6fenfms6E5RtZ9WN2o9q8GiGtdWn/1FdPvTkfvpq36xXT7y5Z8FKCrKtU7n5G7Ue1eC/wD301Z9YLl94clGtNWZ+MFy+8OVAgb029XufkbtR7V4NCNaas+sFy+8OSjWmrPrBcvvDlQBCber3vyN2o9q8Gh/fHVB36guX3hyUaw1Rn4wXL7w5Z9KrLE1l/m/LG70e1eDsraupr6l1TWTyTzu8qSR2XHtUBCa0pcrFtt3ZukkrIbhNAzIFJsREMyKCp052KxsR8ZN1D2qtG5dVLWw2+mkqZ/JdIGDbjbgn2IZmZ0PWN79NbJDsn8KI8zwN3aPUFfvaWuIIwRvXnjHOY4PY4tc05BBwQVubHd4bvCIZyyKvaMcwm6R09Ho6JZpOPMknhZNGWSDIP8ARUdZRy0ztxdGdxC0EjXxuw9paelNIBGCMqCiMylBVxWW+OXL4sRv5uBVTNFJC/kyNLT/AEKFgBSgpgKcCgHZRlJlGUA9pTwVE0p4KAcClTQUoKAeCnAqNOBQD8pQUwFOCAeCnKMFOBQDwUoKblKELDwUoKaEoQDgnZTQ1xOwZU8cWNrtpQhuwxjXO6lOxoaNiTcnxtc9waxpcTwAQq3cAC4hrRknYFQa0rGmSG2xkEQZdKRxeeHYPWrO9XaO0sdDEWyV7hjG8Q9J/i6P8OKe5z3l7yXOcckniVKLQjzEQhCk0NBadSzwAQ17P2uHcHH4RvUePb6Voqd1PWQ9/oJ2TNxlzAfDb1jevPVLTTzU0wmp5XxSDc5pwVFirimbzCZLGyRvJe0OHSqy26lgnDIbpH3t+79ojGz/ALm+0ehXT4iYhPC9k8DvJkjOQUM2milq7c5uXwHI+bxXAQWnDgQeYrSAhRT00Mww9gzzjeoBn89KcumroJIcuZ4bP6hcoQkcDhOBTEoKAkSgpgKcgHApU0FKCgHApyaE4bkAoKcCmJQUBICnAqMFTxQOdglCw0bV0QwOO125SMjY0bQMpwPAIVcgADdgTlIKdwiM072U8I3vkPJCprlqOCnDobXHy37jUSDd5rfafQpKqLZbzmnpIe/184gjPkg7Xv6gs7ddSTTNMNvjNJCRguzmR3WeHYqSpnmqZnTTyvlkdvc45KiSxqopCkkkknJSIQpLAhCEAIQhAC7bXc622yl9JMWh3lMIy13WFxIQG0oL1b7jhsobRVJ4E+Lceg8O1d0kckXlN2cDwK89Vtab9W0DRE4iopxs71Jw6jw9XQosUcehqVy1NHFLtA5DucKegqaC5tLqOfvco3wyHDuzn7E8gtcWuGHA4KgpkUdRTyQuw4bOcKFaFwDhhwBHSuKpoGuy6I8k83BBcqwU4ORIx0bi14IKahJICnBRgpwKAeCnZUeU+Nj5PIGUAZ51NDFJL5IwOcqeCkAw6XaebgusDAwNgQXIoYGRD5zucqYYCGNc9waxpcTuASVtXQW2Mmtk5cuPBgj2u7eAQjMkjifKfBbkcTwC4q69UNteWwcmtqANhafFtPSePYqK7XyrrgYmYp6fd3uM7+s8VU4U2LqJ2XO51lxl5dXM54B8Fg2Nb1BciahSXBCEIAQhCAEIQgBCEIAQhCAEIQgFY5zHh7HFrgcgg4IWhtuppQ1sFzYamMDAlHwjfz/zas6hA1c9ChENVD3+hqGVEfRvHWOCiOzfsWIpKmopJhNTTPieOLT/AJlae2ajpqrENzaKeXcKhjctPnN9qixm49DukjZIMPaHKvqqAty6HaPm8VbSwva1srcSROGQ9pyCo1BUonRyN3scOxDY5XeSxx6grsjnCBs3bEFyvp6Bxw6Y8kfNG9d7GMY0NY0ABKpWQvcwyEBkTdrpHnktA6ygGJ03eaWLv1bM2CI7idpd1Diq25ahpKYGK3RNmlGwzPHgjqHH/N6zNXVT1UxlqJXSvPFx/wAwpsWjDqXNx1HJ4UVsa6CPcZSfGO/T2belUL3Oe4ucSSdpJO0pqFJdKwIQhCQQhCAEIQgBCEIAQhCAEIQgBCEIAQhCAEIQgBCEIDutd1rbc/NPJ4B8qNwy13YtHR3q21uBJ/yUx4OOWE9fDtQhCGkyzZTOlaHQSQzA8Y5AU2SmfEMzSQQjnklAQhQZFdW3i10bSGPNbMPks2MB6Tx7Fm7ndKy4OHf5AIx5MTBhjez2nahCk1SSOJCEISCEIQAhCEAIQhACEIQAhCEB/9k=" alt="Edge Delta" style="height:112px; width:auto;" /></div>
+    <div class="badge badge-pre">Pre-Demo</div>
+    <h1>Let's build the<br/>right demo for you.</h1>
+    <p class="header-sub">A few quick questions so we can tailor what we show you and make the most of your time.</p>
+  </div>
+
+  <div class="progress-bar-wrap">
+    <div class="progress-track"><div class="progress-fill" id="pFill"></div></div>
+    <div class="progress-label"><span id="pPct">0%</span> complete</div>
+  </div>
+
+  <!-- 01 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <div class="section-title"><h2>Company &amp; Contact</h2><p>Who are we talking to?</p></div>
+    </div>
+    <div class="field-grid">
+      <div class="field-row">
+        <label class="field-label">Company Name</label>
+        <input type="text" name="company_name" placeholder="Acme Corp"/>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Your Name &amp; Title</label>
+        <input type="text" name="contact_name" placeholder="Jane Smith, VP Engineering"/>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Email</label>
+        <input type="email" name="email" placeholder="jane@acme.com"/>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Phone <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">(optional)</span></label>
+        <input type="tel" name="phone" placeholder="+1 555 000 0000"/>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Engineering Team Size<span class="hint">On-call or in incident response</span></label>
+        <input type="text" name="eng_size" placeholder="e.g., 12 engineers"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <div class="section-title"><h2>Observability &amp; Infrastructure Stack</h2><p>What's in place today?</p></div>
+    </div>
+    <div class="field-grid">
+      <div class="field-row">
+        <label class="field-label">Primary Monitoring</label>
+        <div class="pill-group">
+          <label class="pill"><input type="checkbox" name="monitoring" value="Datadog"/><div class="pill-dot"></div><span>Datadog</span></label>
+          <label class="pill"><input type="checkbox" name="monitoring" value="Grafana/Loki"/><div class="pill-dot"></div><span>Grafana / Loki</span></label>
+          <label class="pill"><input type="checkbox" name="monitoring" value="New Relic"/><div class="pill-dot"></div><span>New Relic</span></label>
+          <label class="pill"><input type="checkbox" name="monitoring" value="Dynatrace"/><div class="pill-dot"></div><span>Dynatrace</span></label>
+          <label class="pill"><input type="checkbox" name="monitoring" value="Splunk"/><div class="pill-dot"></div><span>Splunk</span></label>
+          <label class="pill"><input type="checkbox" name="monitoring" value="Elastic"/><div class="pill-dot"></div><span>Elastic</span></label>
+          <label class="pill"><input type="checkbox" name="monitoring" value="Other"/><div class="pill-dot"></div><span>Other</span></label>
+        </div>
+      </div>
+      <div class="field-row">
+        <label class="field-label">If Other</label>
+        <input type="text" name="monitoring_other" placeholder="Specify tool(s)"/>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Alerting / On-Call</label>
+        <div class="pill-group">
+          <label class="pill"><input type="checkbox" name="alerting" value="PagerDuty"/><div class="pill-dot"></div><span>PagerDuty</span></label>
+          <label class="pill"><input type="checkbox" name="alerting" value="Opsgenie"/><div class="pill-dot"></div><span>Opsgenie</span></label>
+          <label class="pill"><input type="checkbox" name="alerting" value="Grafana OnCall"/><div class="pill-dot"></div><span>Grafana OnCall</span></label>
+          <label class="pill"><input type="checkbox" name="alerting" value="VictorOps"/><div class="pill-dot"></div><span>VictorOps</span></label>
+          <label class="pill"><input type="checkbox" name="alerting" value="Custom"/><div class="pill-dot"></div><span>Custom / in-house</span></label>
+          <label class="pill"><input type="checkbox" name="alerting" value="Other"/><div class="pill-dot"></div><span>Other</span></label>
+        </div>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Cloud Provider(s)</label>
+        <div class="pill-group">
+          <label class="pill"><input type="checkbox" name="cloud" value="AWS"/><div class="pill-dot"></div><span>AWS</span></label>
+          <label class="pill"><input type="checkbox" name="cloud" value="GCP"/><div class="pill-dot"></div><span>GCP</span></label>
+          <label class="pill"><input type="checkbox" name="cloud" value="Azure"/><div class="pill-dot"></div><span>Azure</span></label>
+          <label class="pill"><input type="checkbox" name="cloud" value="On-Prem/Hybrid"/><div class="pill-dot"></div><span>On-Prem / Hybrid</span></label>
+          <label class="pill"><input type="checkbox" name="cloud" value="Other"/><div class="pill-dot"></div><span>Other</span></label>
+        </div>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Container Orchestration</label>
+        <div class="pill-group">
+          <label class="pill"><input type="checkbox" name="container" value="K8s-managed"/><div class="pill-dot"></div><span>K8s (managed)</span></label>
+          <label class="pill"><input type="checkbox" name="container" value="K8s-self"/><div class="pill-dot"></div><span>K8s (self-hosted)</span></label>
+          <label class="pill"><input type="checkbox" name="container" value="ECS"/><div class="pill-dot"></div><span>ECS</span></label>
+          <label class="pill"><input type="checkbox" name="container" value="Docker Compose"/><div class="pill-dot"></div><span>Docker Compose</span></label>
+          <label class="pill"><input type="checkbox" name="container" value="None"/><div class="pill-dot"></div><span>None</span></label>
+        </div>
+      </div>
+      <div class="field-row">
+        <label class="field-label">CI/CD</label>
+        <div class="pill-group">
+          <label class="pill"><input type="checkbox" name="cicd" value="GitHub Actions"/><div class="pill-dot"></div><span>GitHub Actions</span></label>
+          <label class="pill"><input type="checkbox" name="cicd" value="GitLab CI"/><div class="pill-dot"></div><span>GitLab CI</span></label>
+          <label class="pill"><input type="checkbox" name="cicd" value="Jenkins"/><div class="pill-dot"></div><span>Jenkins</span></label>
+          <label class="pill"><input type="checkbox" name="cicd" value="ArgoCD"/><div class="pill-dot"></div><span>ArgoCD</span></label>
+          <label class="pill"><input type="checkbox" name="cicd" value="Other"/><div class="pill-dot"></div><span>Other</span></label>
+        </div>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Other Key Infra</label>
+        <input type="text" name="other_infra" placeholder="e.g., Kafka, Redis, Postgres, Terraform"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <div class="section-title"><h2>Telemetry Data Volumes</h2><p>Helps us scope the right configuration for you.</p></div>
+    </div>
+    <div class="field-grid">
+      <div class="field-row">
+        <label class="field-label">Log Volume</label>
+        <input type="text" name="log_vol" placeholder="e.g., 500 GB/day"/>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Metrics Volume</label>
+        <input type="text" name="metrics_vol" placeholder="e.g., 50M active time series"/>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Traces Volume</label>
+        <input type="text" name="traces_vol" placeholder="e.g., 100 GB/day"/>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Monthly Obs. Spend<span class="hint">Approx. total across all tools</span></label>
+        <input type="text" name="obs_spend" placeholder="e.g., $80K/mo"/>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Biggest Cost Driver</label>
+        <input type="text" name="cost_driver" placeholder="Which tool or data type?"/>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Retention Requirements</label>
+        <div class="pill-group">
+          <label class="pill"><input type="checkbox" name="retention" value="7d"/><div class="pill-dot"></div><span>7 days</span></label>
+          <label class="pill"><input type="checkbox" name="retention" value="14d"/><div class="pill-dot"></div><span>14 days</span></label>
+          <label class="pill"><input type="checkbox" name="retention" value="30d"/><div class="pill-dot"></div><span>30 days</span></label>
+          <label class="pill"><input type="checkbox" name="retention" value="90d+"/><div class="pill-dot"></div><span>90+ days</span></label>
+          <label class="pill"><input type="checkbox" name="retention" value="Varies"/><div class="pill-dot"></div><span>Varies by type</span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <div class="section-title"><h2>Pain Points &amp; Goals</h2><p>What's driving the conversation?</p></div>
+    </div>
+    <div class="field-grid">
+      <div class="field-row">
+        <label class="field-label">Which resonate?</label>
+        <div class="pill-group">
+          <label class="pill"><input type="checkbox" name="pain_tags" value="Alert fatigue"/><div class="pill-dot"></div><span>Alert fatigue</span></label>
+          <label class="pill"><input type="checkbox" name="pain_tags" value="Slow RCA"/><div class="pill-dot"></div><span>Slow root cause analysis</span></label>
+          <label class="pill"><input type="checkbox" name="pain_tags" value="MTTR too high"/><div class="pill-dot"></div><span>MTTR too high</span></label>
+          <label class="pill"><input type="checkbox" name="pain_tags" value="Cost growth"/><div class="pill-dot"></div><span>Costs growing fast</span></label>
+          <label class="pill"><input type="checkbox" name="pain_tags" value="Data silos"/><div class="pill-dot"></div><span>Data silos</span></label>
+          <label class="pill"><input type="checkbox" name="pain_tags" value="Manual investigation"/><div class="pill-dot"></div><span>Manual investigation</span></label>
+          <label class="pill"><input type="checkbox" name="pain_tags" value="Cross-platform"/><div class="pill-dot"></div><span>No cross-platform visibility</span></label>
+          <label class="pill"><input type="checkbox" name="pain_tags" value="Other"/><div class="pill-dot"></div><span>Other</span></label>
+        </div>
+      </div>
+      <div class="field-row">
+        <label class="field-label">What are your current pains today?</label>
+        <textarea name="current_pains" placeholder="Describe the biggest problems your team is running into with observability, incident response, or on-call today."></textarea>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Alerts per Month</label>
+        <input type="text" name="alerts_month" placeholder="e.g., 200 PagerDuty alerts/month"/>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Estimated MTTR</label>
+        <input type="text" name="mttr" placeholder="e.g., 45 min avg, 4+ hrs for complex"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <div class="section-title"><h2>Anything Else?</h2><p>Open space before we head into the demo.</p></div>
+    </div>
+    <div class="field-grid">
+      <div class="field-row">
+        <label class="field-label">Who approves spend?<span class="hint">Name, title, and how decisions get made</span></label>
+        <textarea name="approver_info" placeholder="e.g., Sarah Lee, VP Eng — any purchase over $25K needs her sign-off plus a security review."></textarea>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Timing</label>
+        <input type="text" name="timeline" placeholder="e.g., targeting end of quarter, or next 30 days"/>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Additional Context<span class="hint">Anything else that would help us prepare</span></label>
+        <textarea name="context" style="min-height:90px;" placeholder="Environment details, team dynamics, open questions for Edge Delta..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- What to expect -->
+  <div class="next-wrap">
+    <h3>// What to Expect in the Demo</h3>
+    <div class="steps">
+      <div class="step"><div class="step-n">01</div><p><strong>Tailored walkthrough</strong> — we map your environment to the scenarios most relevant to your stack and pain points before day one.</p></div>
+      <div class="step"><div class="step-n">02</div><p><strong>AI Teammates in action</strong> — see OnCall AI, SRE, and Code Analyzer collaborate on a real incident scenario from alert to resolution.</p></div>
+      <div class="step"><div class="step-n">03</div><p><strong>Connector ecosystem</strong> — we'll show how PagerDuty, Slack, GitHub, and your existing tools wire into Edge Delta with zero rip-and-replace.</p></div>
+      <div class="step"><div class="step-n">04</div><p><strong>Your questions answered</strong> — we reserve time to go deep on whatever matters most to your team.</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="cta-bar">
+  <div class="autosave" id="autosave"><div class="autosave-dot"></div><span id="autosave-label">In progress</span></div>
+  <button class="btn-save" id="submitBtn" onclick="submitForm()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    Submit to Edge Delta
+  </button>
+</div>
+<div class="toast" id="toast">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toast-msg">Submitted!</span>
+</div>
+<script>const STORAGE_KEY = 'ed_pre_demo_v1';</script>
+<script>
+const FORMSPREE_URL = 'https://formspree.io/f/mkoqjpna';
+
+document.querySelectorAll('.pill').forEach(pill => {
+  const input = pill.querySelector('input');
+  input.addEventListener('change', () => {
+    if (input.type === 'radio') {
+      document.querySelectorAll(`input[name="${input.name}"]`).forEach(r => {
+        r.closest('.pill').classList.toggle('on', r.checked);
+      });
+    } else { pill.classList.toggle('on', input.checked); }
+    updateProgress(); autosave();
+  });
+});
+
+document.querySelectorAll('input[type="text"],input[type="email"],input[type="tel"],textarea').forEach(el => {
+  el.addEventListener('input', () => { updateProgress(); autosave(); });
+});
+
+function updateProgress() {
+  const textEls = [...document.querySelectorAll('input[type="text"],input[type="email"],input[type="tel"],textarea')];
+  let filled = 0, total = textEls.length;
+  textEls.forEach(i => { if (i.value.trim()) filled++; });
+  const groups = {};
+  document.querySelectorAll('input[type="checkbox"],input[type="radio"]').forEach(i => {
+    groups[i.name] = groups[i.name] || []; groups[i.name].push(i);
+  });
+  Object.values(groups).forEach(g => { total++; if (g.some(i => i.checked)) filled++; });
+  const pct = total ? Math.round((filled / total) * 100) : 0;
+  document.getElementById('pFill').style.width = pct + '%';
+  document.getElementById('pPct').textContent = pct + '%';
+  const label = document.getElementById('autosave-label');
+  const dot = document.getElementById('autosave');
+  const wasSubmitted = localStorage.getItem(STORAGE_KEY + '_submitted') === '1';
+  if (wasSubmitted) { label.textContent = 'Previously submitted'; dot.classList.add('live'); }
+  else if (pct === 0) { label.textContent = 'In progress'; dot.classList.remove('live'); }
+  else if (pct < 100) { label.textContent = pct + '% complete — auto-saved'; dot.classList.add('live'); }
+  else { label.textContent = 'Ready to submit'; dot.classList.add('live'); }
+}
+
+function collect() {
+  const d = {};
+  document.querySelectorAll('input[type="text"],input[type="email"],input[type="tel"],textarea').forEach(i => { if (i.name) d[i.name] = i.value; });
+  const cbGroups = {};
+  document.querySelectorAll('input[type="checkbox"]').forEach(i => { cbGroups[i.name] = cbGroups[i.name] || []; if (i.checked) cbGroups[i.name].push(i.value); });
+  Object.entries(cbGroups).forEach(([k, v]) => { d[k] = v.join(', ') || ''; });
+  document.querySelectorAll('input[type="radio"]').forEach(i => { if (i.checked) d[i.name] = i.value; });
+  return d;
+}
+
+function restore(d) {
+  Object.entries(d).forEach(([name, val]) => {
+    const t = document.querySelector(`input[name="${name}"][type="text"],input[name="${name}"][type="email"],input[name="${name}"][type="tel"],textarea[name="${name}"]`);
+    if (t) { t.value = val; return; }
+    if (typeof val === 'string' && val.includes(',') || val !== '') {
+      const vals = typeof val === 'string' ? val.split(', ').map(v => v.trim()) : [val];
+      vals.forEach(v => { if (!v) return; const cb = document.querySelector(`input[name="${name}"][type="checkbox"][value="${CSS.escape(v)}"]`); if (cb) { cb.checked = true; cb.closest('.pill')?.classList.add('on'); } });
+    }
+    const radio = document.querySelector(`input[name="${name}"][type="radio"][value="${CSS.escape(val)}"]`);
+    if (radio) { radio.checked = true; radio.closest('.pill')?.classList.add('on'); }
+  });
+}
+
+let saveTimer;
+function autosave() { clearTimeout(saveTimer); saveTimer = setTimeout(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collect())); } catch(e) {} }, 600); }
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.style.borderColor = isError ? 'rgba(239,68,68,0.5)' : '';
+  t.style.color = isError ? '#f87171' : '';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), isError ? 5000 : 3500);
+}
+
+async function submitForm() {
+  const btn = document.getElementById('submitBtn');
+  const email = document.querySelector('input[name="email"]').value.trim();
+  if (!email) { showToast('Please enter your email address first', true); document.querySelector('input[name="email"]').focus(); return; }
+  btn.disabled = true;
+  btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>&nbsp;Submitting...`;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collect())); } catch(e) {}
+  try {
+    const res = await fetch(FORMSPREE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(collect()) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    localStorage.setItem(STORAGE_KEY + '_submitted', '1');
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>&nbsp;Submitted`;
+    btn.style.borderColor = 'var(--green)'; btn.style.background = 'var(--green-dim)';
+    setTimeout(() => { btn.disabled = false; btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>&nbsp;Resubmit`; }, 4000);
+    document.getElementById('autosave-label').textContent = 'Submitted ✓ — state saved';
+    document.getElementById('autosave').classList.add('live');
+    showToast("Submitted! We'll be in touch soon.");
+  } catch(err) {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>&nbsp;Submit to Edge Delta`;
+    showToast('Submission failed — your answers are saved, please try again', true);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  try { const saved = localStorage.getItem(STORAGE_KEY); if (saved) restore(JSON.parse(saved)); } catch(e) {}
+  updateProgress();
+});
+</script>
+</body>
+</html>
