@@ -254,6 +254,13 @@
                 }
                 const markdown = await response.text();
                 content.innerHTML = marked.parse(markdown);
+                // Fix image paths - prepend markdown/ to relative paths
+                content.querySelectorAll('img').forEach(img => {
+                    const src = img.getAttribute('src');
+                    if (src && !src.startsWith('http') && !src.startsWith('/') && !src.startsWith('markdown/')) {
+                        img.setAttribute('src', 'markdown/' + src);
+                    }
+                });
                 window.location.hash = filename;
             } catch (error) {
                 content.innerHTML = `<div class="error">Error loading document: ${error.message}</div>`;
