@@ -18,7 +18,7 @@ The team's approach? Automate installing Outlook on multiple desktops, connect t
 
 I took a different approach. I stripped out the UI element from Outlook, launched just one instance, and built a load tool that spawned 10 instances of the data access layer. It mimicked activities—search folder switches, item additions—continuously. When you tried to use Outlook with this tool running, you immediately saw what customers were experiencing.
 
-![BCM Load Tool: Before and After](blog-images/bcm-load-tool.png)
+![BCM Load Tool: Before and After](markdown/blog-images/bcm-load-tool.png)
 
 Engineers had no excuse anymore. Launch one tool, stress the database, instant reproduction. They could test fixes immediately. It became stupidly simple to reproduce, and guess what? Performance issues got resolved very quickly.
 
@@ -30,7 +30,7 @@ The root cause was nearly impossible to find because the problem was buried in v
 
 Instead of fighting the data problem head-on, we shifted focus to tooling. What if we only collected detailed telemetry for sessions with high delay or glitches, while successful sessions just delivered a summary? This tooling improvement solved the data problem and made critical information accessible to engineers immediately.
 
-![Twitter Video Latency: Before and After Smart Sampling](blog-images/twitter-smart-sampling.png)
+![Twitter Video Latency: Before and After Smart Sampling](markdown/blog-images/twitter-smart-sampling.png)
 
 Suddenly, we discovered CDN routing inefficiencies. We found resolution selection bugs. We uncovered codec selection problems. Making these invisible parts visible made fixing performance issues trivial.
 
@@ -44,7 +44,7 @@ This is where we applied the same philosophy: **make the invisible visible**.
 
 We built a query profiler that captures everything about a log search session: every query that hits the database, their execution order, the exact SQL with all parameters, the EXPLAIN plan, the schema being used, I/O metrics (rows read, bytes scanned, memory usage), and timing breakdowns. Engineers could now click a "Profile" button after any search and see a complete execution timeline—which queries ran in parallel, which were sequential, and where the time actually went.
 
-![Query Profiler: Execution Timeline and SQL Details](blog-images/query-profiler.png)
+![Query Profiler: Execution Timeline and SQL Details](markdown/blog-images/query-profiler.png)
 
 Suddenly the bottlenecks were obvious. We could see queries scanning 5TB of data when they should have been using skip indexes. We could see facet queries taking longer than the main search. We could see routing decisions sending queries to the wrong table. With this visibility, my colleagues could attack the actual problems. On the backend, we dove deep into ClickHouse internals, optimizing query execution paths, improving partition pruning, and tuning how we structure data for time-range queries. On the frontend, we ensured the UI remained responsive during long-running queries, implementing progressive loading and fixing rendering bottlenecks that made slow queries feel even slower.
 

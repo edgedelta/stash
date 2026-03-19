@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Art of Making Performance Problems Impossible to Ignore</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #fff;
+            color: #24292e;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        .back-link {
+            display: inline-block;
+            color: #0366d6;
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .markdown-body {
+            color: #24292e;
+            line-height: 1.6;
+        }
+        .markdown-body h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        .markdown-body h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        .markdown-body h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .markdown-body h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+        .markdown-body p {
+            margin-bottom: 1rem;
+        }
+        .markdown-body pre {
+            background: #f6f8fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.85rem;
+            line-height: 1.45;
+        }
+        .markdown-body code {
+            background: #f6f8fa;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.85em;
+        }
+        .markdown-body pre code {
+            background: none;
+            padding: 0;
+        }
+        .markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        .markdown-body th,
+        .markdown-body td {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e1e4e8;
+            text-align: left;
+        }
+        .markdown-body th {
+            background: #f6f8fa;
+            font-weight: 600;
+        }
+        .markdown-body hr {
+            border: none;
+            border-top: 1px solid #e1e4e8;
+            margin: 2rem 0;
+        }
+        .markdown-body ul,
+        .markdown-body ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+        .markdown-body li {
+            margin-bottom: 0.25rem;
+        }
+        .markdown-body a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        .markdown-body a:hover {
+            text-decoration: underline;
+        }
+        .markdown-body blockquote {
+            border-left: 4px solid #dfe2e5;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #6a737d;
+        }
+        .markdown-body strong {
+            font-weight: 600;
+        }
+        .markdown-body img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin: 1rem 0;
+            border: 1px solid #e1e4e8;
+        }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6a737d;
+        }
+        .error {
+            background: #ffeef0;
+            border: 1px solid #f97583;
+            border-radius: 6px;
+            padding: 1rem;
+            color: #cb2431;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Home</a>
+        <div class="markdown-body" id="content">
+            <div class="loading">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const content = document.getElementById('content');
+            try {
+                const response = await fetch('markdown/performance-blog-post.md');
+                if (!response.ok) {
+                    throw new Error(`Failed to load: ${response.status}`);
+                }
+                const markdown = await response.text();
+                content.innerHTML = marked.parse(markdown);
+            } catch (error) {
+                content.innerHTML = `<div class="error">Error loading document: ${error.message}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>
