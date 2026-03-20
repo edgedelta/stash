@@ -6,7 +6,7 @@ Below is a comprehensive compilation of the performance improvements made to Log
 
 ---
 
-## 1. Smart Query Routing with hasToken Optimization — **HIGH IMPACT**
+## 1. Smart Query Routing with hasToken Optimization
 
 **Problem:** Full-text searches were scanning the entire ordered table even when token-based filtering could dramatically reduce the search space.
 
@@ -101,7 +101,7 @@ if estimatedScan > uint64(float64(rowsTotal) * 10.0) {
 
 ---
 
-## 2. Aggregation and Sample Table Architecture — **HIGH IMPACT**
+## 2. Aggregation and Sample Table Architecture
 
 **Problem:** Large time-window queries were scanning massive amounts of data even for simple aggregations and facet counting.
 
@@ -168,7 +168,7 @@ A 1% sample table is 100x smaller, so queries that would scan 100GB now scan 1GB
 
 ---
 
-## 3. Server-Sent Events (SSE) Streaming for Log Search — **HIGH IMPACT**
+## 3. Server-Sent Events (SSE) Streaming for Log Search
 
 **Problem:** Large result sets caused timeouts and poor UX because users waited for entire query completion before seeing any results.
 
@@ -247,7 +247,7 @@ Users can start analyzing results immediately. If the first results aren't what 
 
 ---
 
-## 4. VList Virtual Rendering Engine — **HIGH IMPACT**
+## 4. VList Virtual Rendering Engine
 
 **Problem:** Rendering large log result sets (10K+ rows) caused browser jank, memory bloat, and UI freezes.
 
@@ -356,7 +356,7 @@ This means when users scroll, the items are often already rendered, making scrol
 
 ---
 
-## 5. Query Merging for Metric Graphs — **MEDIUM-HIGH IMPACT**
+## 5. Query Merging for Metric Graphs
 
 **Problem:** Dashboard pages with multiple graphs sent individual queries for each metric, causing N round trips and redundant data scanning.
 
@@ -437,7 +437,7 @@ GROUP BY host, time
 
 ---
 
-## 6. Query Profiler and Visibility Tooling — **MEDIUM IMPACT (ENABLER)**
+## 6. Query Profiler and Visibility Tooling
 
 **Problem:** Engineers couldn't see query execution details, making it impossible to identify bottlenecks or validate optimizations.
 
