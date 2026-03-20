@@ -6,23 +6,25 @@ Below is a comprehensive compilation of the performance improvements made to Log
 
 ---
 
-## 1. Smart Query Routing with hasToken Optimization
+## 1. PREWHERE Optimization with Bloom Filters
 
-**Problem:** Full-text searches were scanning the entire ordered table even when token-based filtering could dramatically reduce the search space.
+**Problem:** Our original search queries used `LIKE '%token%'` patterns in the WHERE clause. Using ClickHouse's EXPLAIN feature, we discovered these queries were doing full table scans and completely bypassing our bloom filter indexes.
 
-**Solution:** Implemented intelligent query routing that analyzes search tokens and routes queries to the optimal table (ordered vs. sample) based on token rarity. Added `hasToken()` optimization that leverages ClickHouse's inverted indexes for initial filtering before full-text search.
+**Solution:** We moved token filtering to the PREWHERE clause using `hasToken()`, which properly utilizes bloom filter indexes to skip granules that definitely don't contain the search terms. The `position()` check in WHERE then verifies exact matches only on the pre-filtered set.
 
-**Key Changes:**
-- Built a routing planner that evaluates token rarity and query complexity
-- Added `hasToken()` calls in PREWHERE clauses to leverage skip indexes
-- Routes rare-token queries to ordered table, common-token queries to sample table
-- Token rarity dependent routing biased toward ordered table for better index utilization
+### Before: Full Table Scan
 
-### How It Works: The Two-Phase Filter Strategy
+```sql
+SELECT * FROM logs
+WHERE body LIKE '%connection%'
+  AND body LIKE '%refused%'
+  AND body LIKE '%error%'
+```
 
-When a user searches for `"connection refused error"`, we now split the query into two phases:
+This scans every row because LIKE patterns can't use bloom filter indexes.
 
-**Phase 1: PREWHERE with hasToken (Bloom Filter)**
+### After: Bloom Filter + Exact Match
+
 ```sql
 SELECT * FROM logs
 PREWHERE hasToken(ibody, 'connection')
@@ -31,11 +33,9 @@ PREWHERE hasToken(ibody, 'connection')
 WHERE position(body, 'connection refused error') > 0
 ```
 
-The `hasToken()` function uses ClickHouse's bloom filter indexes. These are probabilistic data structures that can quickly tell us "this block definitely doesn't contain this token" without reading the actual data. This eliminates 90%+ of data blocks before we even start scanning.
+The `hasToken()` function in PREWHERE uses ClickHouse's bloom filter indexes. These are probabilistic data structures that can quickly tell us "this granule definitely doesn't contain this token" without reading the actual data. This eliminates 90%+ of granules before we start scanning.
 
-**Phase 2: WHERE with position() (Exact Match)**
-
-The `position()` check in WHERE verifies the exact phrase match. This is necessary because:
+The `position()` check in WHERE then verifies the exact phrase match on the remaining granules. This is necessary because:
 - `hasToken('error')` will match both "error" and "errors"
 - We need to verify the tokens appear in the correct order/phrase
 
@@ -53,7 +53,6 @@ func TokenizeSearchTerm(term string) []string {
         if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
             current.WriteRune(r)
         } else {
-            // Non-alphanumeric char, flush current token
             if current.Len() > 0 {
                 t := current.String()
                 if !seen[t] {
@@ -64,16 +63,23 @@ func TokenizeSearchTerm(term string) []string {
             current.Reset()
         }
     }
-    // ... flush final token
     return tokens
 }
 ```
 
 For example, `"user@example.com"` tokenizes to `["user", "example", "com"]`.
 
-### The Routing Decision: Which Table to Query?
+**Impact:** 5-10x improvement on searches with selective tokens; eliminates full table scans.
 
-Not all queries benefit equally from the ordered table. We built a routing planner that considers:
+---
+
+## 2. Smart Query Routing
+
+**Problem:** Not all queries benefit from the same table. We have timestamp-ordered tables (good for recent data) and resource-ordered tables (good for rare tokens across wide time ranges). Queries were always hitting the timestamp-ordered table even when another table would be more efficient.
+
+**Solution:** Built a routing planner that analyzes token rarity and routes queries to the optimal table based on estimated scan size.
+
+### The Routing Decision
 
 ```go
 // If token is so rare we can't satisfy LIMIT, use resource-ordered table
@@ -87,21 +93,23 @@ if tokenCount < uint64(p.limit) {
 tokenDensity := float64(tokenCount) / float64(rowsScope)
 approxRowsToScan := float64(p.limit) / tokenDensity
 
-// If estimated scan > 10x total size, token is too rare for T_ts
+// If estimated scan > 10x total size, token is too rare for timestamp table
 if estimatedScan > uint64(float64(rowsTotal) * 10.0) {
-    // Rare token: use resource-ordered table for locality
     decision.TableName = fmt.Sprintf("ed_log_%s%s", p.orgID, resTableSuffix)
 } else {
-    // Common token: timestamp-ordered table can short-circuit efficiently
     decision.TableName = fmt.Sprintf("ed_log_%s", p.orgID)
 }
 ```
 
-**Impact:** 5-10x improvement on searches with selective tokens; eliminates full table scans for most queries.
+The logic:
+- **Rare tokens**: Route to resource-ordered table where similar logs are grouped together
+- **Common tokens**: Route to timestamp-ordered table which can short-circuit efficiently when finding recent matches
+
+**Impact:** Reduces scan size for rare-token queries by routing to tables with better data locality.
 
 ---
 
-## 2. Aggregation and Sample Table Architecture
+## 3. Aggregation and Sample Table Architecture
 
 **Problem:** Large time-window queries were scanning massive amounts of data even for simple aggregations and facet counting.
 
@@ -168,7 +176,7 @@ A 1% sample table is 100x smaller, so queries that would scan 100GB now scan 1GB
 
 ---
 
-## 3. Server-Sent Events (SSE) Streaming for Log Search
+## 4. Server-Sent Events (SSE) Streaming for Log Search
 
 **Problem:** Large result sets caused timeouts and poor UX because users waited for entire query completion before seeing any results.
 
@@ -247,7 +255,7 @@ Users can start analyzing results immediately. If the first results aren't what 
 
 ---
 
-## 4. VList Virtual Rendering Engine
+## 5. VList Virtual Rendering Engine
 
 **Problem:** Rendering large log result sets (10K+ rows) caused browser jank, memory bloat, and UI freezes.
 
@@ -356,7 +364,7 @@ This means when users scroll, the items are often already rendered, making scrol
 
 ---
 
-## 5. Query Merging for Metric Graphs
+## 6. Query Merging for Metric Graphs
 
 **Problem:** Dashboard pages with multiple graphs sent individual queries for each metric, causing N round trips and redundant data scanning.
 
@@ -437,7 +445,7 @@ GROUP BY host, time
 
 ---
 
-## 6. Query Profiler and Visibility Tooling
+## 7. Query Profiler and Visibility Tooling
 
 **Problem:** Engineers couldn't see query execution details, making it impossible to identify bottlenecks or validate optimizations.
 
@@ -523,7 +531,7 @@ This allows us to find any query in ClickHouse's `system.query_log` and correlat
 
 ## Summary
 
-These six optimizations transformed our log search from timing out on large queries to delivering sub-second results. The key insight wasn't any single technique. It was the combination of making performance visible through tooling, then systematically attacking bottlenecks at every layer: smarter query routing with bloom filters, tiered data architecture for different access patterns, streaming to eliminate perceived latency, virtual rendering to handle massive result sets, query batching to reduce round trips, and profiling to keep us honest. Time-to-first-result improved from 5-30 seconds to under 500ms. Large query timeouts dropped by 95%. The UI now handles 300K log lines without breaking a sweat. Most importantly, we built the infrastructure to keep iterating because performance is never "done," it's a continuous battle that requires constant visibility.
+These seven optimizations transformed our log search from timing out on large queries to delivering sub-second results. The key insight wasn't any single technique. It was the combination of making performance visible through tooling, then systematically attacking bottlenecks at every layer: PREWHERE with bloom filters, smart query routing, tiered data architecture for different access patterns, streaming to eliminate perceived latency, virtual rendering to handle massive result sets, query batching to reduce round trips, and profiling to keep us honest. Time-to-first-result improved from 5-30 seconds to under 500ms. Large query timeouts dropped by 95%. The UI now handles 300K log lines without breaking a sweat. Most importantly, we built the infrastructure to keep iterating because performance is never "done," it's a continuous battle that requires constant visibility.
 
 ---
 
