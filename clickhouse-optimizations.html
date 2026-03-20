@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Documentation - EdgeDelta</title>
+    <title>ClickHouse Log Search Optimizations: Technical Deep Dive</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         * {
@@ -17,63 +17,20 @@
             color: #24292e;
             line-height: 1.6;
         }
-        .layout {
-            display: flex;
-            min-height: 100vh;
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
         }
-        .sidebar {
-            width: 250px;
-            background: #f6f8fa;
-            border-right: 1px solid #e1e4e8;
-            padding: 1.5rem 1rem;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-        }
-        .sidebar h2 {
-            color: #24292e;
-            margin-bottom: 1rem;
-            font-size: 1rem;
-            font-weight: 600;
-        }
-        .sidebar a.home-link {
-            display: block;
+        .back-link {
+            display: inline-block;
             color: #0366d6;
             text-decoration: none;
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #e1e4e8;
+            margin-bottom: 2rem;
             font-size: 0.875rem;
         }
-        .sidebar a.home-link:hover {
+        .back-link:hover {
             text-decoration: underline;
-        }
-        .doc-list {
-            list-style: none;
-        }
-        .doc-list li {
-            margin-bottom: 0.25rem;
-        }
-        .doc-list a {
-            display: block;
-            padding: 0.5rem 0.75rem;
-            color: #24292e;
-            text-decoration: none;
-            border-radius: 4px;
-            font-size: 0.875rem;
-        }
-        .doc-list a:hover {
-            background: #e1e4e8;
-        }
-        .doc-list a.active {
-            background: #0366d6;
-            color: #fff;
-        }
-        .main-content {
-            flex: 1;
-            margin-left: 250px;
-            padding: 2rem 3rem;
-            max-width: 900px;
         }
         .markdown-body {
             color: #24292e;
@@ -98,6 +55,12 @@
             font-size: 1.25rem;
             font-weight: 600;
             margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .markdown-body h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 1.25rem;
             margin-bottom: 0.5rem;
         }
         .markdown-body p {
@@ -169,6 +132,13 @@
         .markdown-body strong {
             font-weight: 600;
         }
+        .markdown-body img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin: 1rem 0;
+            border: 1px solid #e1e4e8;
+        }
         .loading {
             text-align: center;
             padding: 2rem;
@@ -181,75 +151,21 @@
             padding: 1rem;
             color: #cb2431;
         }
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-            }
-            .main-content {
-                margin-left: 0;
-                padding: 1rem;
-            }
-            .layout {
-                flex-direction: column;
-            }
-        }
     </style>
 </head>
 <body>
-    <div class="layout">
-        <nav class="sidebar">
-            <a href="index.html" class="home-link">&larr; Back to Home</a>
-            <h2>Documentation</h2>
-            <ul class="doc-list" id="docList">
-                <li><span class="loading">Loading...</span></li>
-            </ul>
-        </nav>
-        <main class="main-content">
-            <div class="markdown-body" id="content">
-                <div class="loading">Select a document from the sidebar</div>
-            </div>
-        </main>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Home</a>
+        <div class="markdown-body" id="content">
+            <div class="loading">Loading...</div>
+        </div>
     </div>
 
     <script>
-        // List of markdown files - add new files here
-        const markdownFiles = [
-            { name: 'Tantivy ClickHouse Integration', file: 'tantivy-clickhouse-integration.md' },
-            { name: 'Performance Stories', file: 'performance-stories.md' },
-            { name: 'ClickHouse Optimizations', file: 'clickhouse-optimizations.md' }
-        ];
-
-        document.addEventListener('DOMContentLoaded', () => {
-            renderDocList();
-            const hash = window.location.hash.slice(1);
-            if (hash) {
-                loadMarkdown(hash);
-            } else if (markdownFiles.length > 0) {
-                loadMarkdown(markdownFiles[0].file);
-            }
-        });
-
-        function renderDocList() {
-            const list = document.getElementById('docList');
-            list.innerHTML = markdownFiles.map(doc => `
-                <li>
-                    <a href="#${doc.file}" onclick="loadMarkdown('${doc.file}')">${doc.name}</a>
-                </li>
-            `).join('');
-        }
-
-        async function loadMarkdown(filename) {
+        document.addEventListener('DOMContentLoaded', async () => {
             const content = document.getElementById('content');
-            content.innerHTML = '<div class="loading">Loading...</div>';
-
-            document.querySelectorAll('.doc-list a').forEach(a => {
-                a.classList.toggle('active', a.getAttribute('href') === `#${filename}`);
-            });
-
             try {
-                const response = await fetch(`markdown/${filename}`);
+                const response = await fetch('markdown/clickhouse-optimizations.md');
                 if (!response.ok) {
                     throw new Error(`Failed to load: ${response.status}`);
                 }
@@ -262,16 +178,8 @@
                         img.setAttribute('src', 'markdown/' + src);
                     }
                 });
-                window.location.hash = filename;
             } catch (error) {
                 content.innerHTML = `<div class="error">Error loading document: ${error.message}</div>`;
-            }
-        }
-
-        window.addEventListener('hashchange', () => {
-            const hash = window.location.hash.slice(1);
-            if (hash) {
-                loadMarkdown(hash);
             }
         });
     </script>

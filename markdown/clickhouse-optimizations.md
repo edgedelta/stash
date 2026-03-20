@@ -1,74 +1,12 @@
-# The Art of Making Performance Problems Impossible to Ignore
+# ClickHouse Log Search Optimizations: Technical Deep Dive
 
-Since my early days as an engineer, performance has been my passion. It signals care for the product and respect for customers' time. Trust is easily lost when timeouts and errors start popping up at scale.
-
-Performance work is unique—it requires deep understanding of all components and how they interact. I find it fascinating, even though it's incredibly time-consuming. But here's the uncomfortable truth: when reproduction is hard or gathering information about issues is difficult, engineers pay less attention. Sometimes they ignore performance problems entirely.
-
-I'd bet countless performance issues go unresolved simply because generating large datasets or network loads is hard. This is why attacking performance is first and foremost a **tooling problem**. We need to make it stupidly simple for developers to reproduce issues. If they can reproduce quickly, they can identify bottlenecks and iterate. Performance is a continuous battle—without the right tooling, even today's improvements will drift back tomorrow.
-
-The goal is simple: **make invisible things visible with minimal effort**. Make it so obvious that there's no excuse to look away.
-
-## Story 1: The Outlook Database That Couldn't Scale
-
-In my early days at Microsoft, I worked on Business Contact Manager—an Outlook add-on that transformed it into a small business CRM. It had a shared database that multiple Outlook clients connected to. Every UI action hit this central database.
-
-Our customers complained constantly. With just 10 employees connecting to the same database, switching search folders or adding items became painfully slow. The application was nearly unusable.
-
-The team's approach? Automate installing Outlook on multiple desktops, connect them to the shared database, and use UI test tools to mimic folder switching so engineers could debug. Imagine coordinating 10 different PCs—the setup time alone was enormous.
-
-I took a different approach. I stripped out the UI element from Outlook, launched just one instance, and built a load tool that spawned 10 instances of the data access layer. It mimicked activities—search folder switches, item additions—continuously. When you tried to use Outlook with this tool running, you immediately saw what customers were experiencing.
-
-![BCM Load Tool: Before and After](blog-images/bcm-load-tool.png)
-
-Engineers had no excuse anymore. Launch one tool, stress the database, instant reproduction. They could test fixes immediately. It became stupidly simple to reproduce, and guess what? Performance issues got resolved very quickly.
-
-## Story 2: Why Twitter Videos Were Slow to Start
-
-At Twitter, people complained about video start latency. The challenge was multidimensional: which CDN was used, which codec, which network provider, which mobile app version—any combination could cause delays. Customers got frustrated. Ads started late. Revenue was at risk.
-
-The root cause was nearly impossible to find because the problem was buried in volume. We needed data from every session to investigate arbitrary issues. The data collection alone was overwhelming.
-
-Instead of fighting the data problem head-on, we shifted focus to tooling. What if we only collected detailed telemetry for sessions with high delay or glitches, while successful sessions just delivered a summary? This tooling improvement solved the data problem and made critical information accessible to engineers immediately.
-
-![Twitter Video Latency: Before and After Smart Sampling](blog-images/twitter-smart-sampling.png)
-
-Suddenly, we discovered CDN routing inefficiencies. We found resolution selection bugs. We uncovered codec selection problems. Making these invisible parts visible made fixing performance issues trivial.
-
-## Story 3: The ClickHouse Journey at Edge Delta
-
-The same pattern emerged at Edge Delta. Customers were experiencing performance issues with large time-window queries in our log search. Queries that should return in seconds were timing out. But understanding why? Nearly impossible.
-
-The challenge was complexity. A single page load triggered dozens of queries—search queries, facet queries, graph queries, stats queries—all hitting different tables with different routing strategies. Which query was slow? Which table was being scanned? Was the bloom filter index being used? Were we hitting the sample table or the full table? Without visibility into this, engineers were debugging blind.
-
-This is where we applied the same philosophy: **make the invisible visible**.
-
-We built a query profiler that captures everything about a log search session: every query that hits the database, their execution order, the exact SQL with all parameters, the EXPLAIN plan, the schema being used, I/O metrics (rows read, bytes scanned, memory usage), and timing breakdowns. Engineers could now click a "Profile" button after any search and see a complete execution timeline—which queries ran in parallel, which were sequential, and where the time actually went.
-
-![Query Profiler: Execution Timeline and SQL Details](blog-images/query-profiler.png)
-
-Suddenly the bottlenecks were obvious. We could see queries scanning 5TB of data when they should have been using skip indexes. We could see facet queries taking longer than the main search. We could see routing decisions sending queries to the wrong table. With this visibility, my colleagues could attack the actual problems. On the backend, we dove deep into ClickHouse internals, optimizing query execution paths, improving partition pruning, and tuning how we structure data for time-range queries. On the frontend, we ensured the UI remained responsive during long-running queries, implementing progressive loading and fixing rendering bottlenecks that made slow queries feel even slower.
-
-The results spoke for themselves. Queries that previously timed out now complete in seconds. What changed wasn't just the code—it was our ability to see, measure, and iterate on performance continuously.
-
-## The Pattern
-
-Three companies, three different problems, one consistent lesson: **performance work is tooling work**.
-
-When you make reproduction trivial, engineers can't ignore problems. When you make measurements automatic, performance becomes part of the development cycle, not an afterthought. When you make the invisible visible, fixes become obvious.
-
-If you're struggling with performance issues in your product, don't start by optimizing code. Start by asking: "How easy is it for any engineer on my team to reproduce this problem right now?" If the answer is anything other than "trivially easy," that's your first problem to solve.
-
-Make it stupidly simple. Leave no excuses.
-
----
-
-## Appendix: Technical Details of ClickHouse/ClickHouse Optimizations
+> This is a companion post to [The Art of Making Performance Problems Impossible to Ignore](performance-stories.html), where I discuss how making performance visible is the first step to fixing it. Here, I dive into the specific optimizations we made to Edge Delta's log search, transforming queries that timed out into sub-second responses.
 
 Below is a comprehensive compilation of the performance improvements made to Log Search, ordered by impact. The work spans backend query optimization, frontend rendering, and profiling/tooling.
 
 ---
 
-### 1. Smart Query Routing with hasToken Optimization — **HIGH IMPACT**
+## 1. Smart Query Routing with hasToken Optimization — **HIGH IMPACT**
 
 **Problem:** Full-text searches were scanning the entire ordered table even when token-based filtering could dramatically reduce the search space.
 
@@ -80,7 +18,7 @@ Below is a comprehensive compilation of the performance improvements made to Log
 - Routes rare-token queries to ordered table, common-token queries to sample table
 - Token rarity dependent routing biased toward ordered table for better index utilization
 
-#### How It Works: The Two-Phase Filter Strategy
+### How It Works: The Two-Phase Filter Strategy
 
 When a user searches for `"connection refused error"`, we now split the query into two phases:
 
@@ -101,7 +39,7 @@ The `position()` check in WHERE verifies the exact phrase match. This is necessa
 - `hasToken('error')` will match both "error" and "errors"
 - We need to verify the tokens appear in the correct order/phrase
 
-#### The Tokenizer: Matching ClickHouse's Behavior
+### The Tokenizer: Matching ClickHouse's Behavior
 
 A critical detail was ensuring our tokenizer produces the same tokens as ClickHouse's internal tokenizer:
 
@@ -133,7 +71,7 @@ func TokenizeSearchTerm(term string) []string {
 
 For example, `"user@example.com"` tokenizes to `["user", "example", "com"]`.
 
-#### The Routing Decision: Which Table to Query?
+### The Routing Decision: Which Table to Query?
 
 Not all queries benefit equally from the ordered table. We built a routing planner that considers:
 
@@ -169,7 +107,7 @@ if estimatedScan > uint64(float64(rowsTotal) * 10.0) {
 
 ---
 
-### 2. Aggregation and Sample Table Architecture — **HIGH IMPACT**
+## 2. Aggregation and Sample Table Architecture — **HIGH IMPACT**
 
 **Problem:** Large time-window queries were scanning massive amounts of data even for simple aggregations and facet counting.
 
@@ -182,7 +120,7 @@ if estimatedScan > uint64(float64(rowsTotal) * 10.0) {
 - Ability to fetch facet keys from cache + agg table
 - Return 404 when lookback dates are not within sample table data range
 
-#### The Three-Tier Data Architecture
+### The Three-Tier Data Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -202,7 +140,7 @@ if estimatedScan > uint64(float64(rowsTotal) * 10.0) {
 └───────────────┘ └───────────────┘ └───────────────┘
 ```
 
-#### Sample Table with Compensation
+### Sample Table with Compensation
 
 When querying the sample table, we multiply results by the sampling factor:
 
@@ -223,7 +161,7 @@ if useSampleTable && samplingFactor > 1 {
 
 A 1% sample table is 100x smaller—queries that would scan 100GB now scan 1GB, with statistically accurate results for aggregations.
 
-#### Smart Routing Based on Query Type
+### Smart Routing Based on Query Type
 
 | Query Type | Time Range | Table Used | Why |
 |------------|------------|------------|-----|
@@ -243,7 +181,7 @@ A 1% sample table is 100x smaller—queries that would scan 100GB now scan 1GB, 
 
 ---
 
-### 3. Server-Sent Events (SSE) Streaming for Log Search — **HIGH IMPACT**
+## 3. Server-Sent Events (SSE) Streaming for Log Search — **HIGH IMPACT**
 
 **Problem:** Large result sets caused timeouts and poor UX—users waited for entire query completion before seeing any results.
 
@@ -256,7 +194,7 @@ A 1% sample table is 100x smaller—queries that would scan 100GB now scan 1GB, 
 - Frontend streaming service with proper cancellation handling
 - Feature flag for gradual rollout
 
-#### How It Works: Progressive Result Delivery
+### How It Works: Progressive Result Delivery
 
 Instead of the traditional request-response pattern:
 
@@ -282,7 +220,7 @@ Server: event: complete
         data: {"total_items":10000,"hit_windows":100}
 ```
 
-#### The Backend SSE Writer
+### The Backend SSE Writer
 
 ```go
 type sseWriter struct {
@@ -308,7 +246,7 @@ func (s *sseWriter) sendEvent(event string, data any) error {
 
 The key insight: `X-Accel-Buffering: no` is crucial—without it, nginx will buffer the entire response, defeating the purpose of streaming.
 
-#### Why This Matters for UX
+### Why This Matters for UX
 
 | Scenario | Before (Batch) | After (Streaming) |
 |----------|----------------|-------------------|
@@ -329,7 +267,7 @@ Users can start analyzing results immediately. If the first results aren't what 
 
 ---
 
-### 4. VList Virtual Rendering Engine — **HIGH IMPACT**
+## 4. VList Virtual Rendering Engine — **HIGH IMPACT**
 
 **Problem:** Rendering large log result sets (10K+ rows) caused browser jank, memory bloat, and UI freezes.
 
@@ -343,7 +281,7 @@ Users can start analyzing results immediately. If the first results aren't what 
 - Support for external scroll elements (e.g., window virtualization)
 - Can now render up to 300K items smoothly
 
-#### The Problem with Naive Virtual Lists
+### The Problem with Naive Virtual Lists
 
 Most virtual list implementations use a simple approach:
 ```javascript
@@ -359,7 +297,7 @@ function getItemAtOffset(offset) {
 
 With 300K items of variable height, this becomes a performance nightmare—every scroll event triggers O(n) calculations.
 
-#### The Fenwick Tree Solution
+### The Fenwick Tree Solution
 
 We implemented a [Fenwick Tree](https://en.wikipedia.org/wiki/Fenwick_tree) (Binary Indexed Tree) for O(log n) prefix-sum queries:
 
@@ -411,7 +349,7 @@ export class FenwickTree {
 
 The magic of `i & -i`: This bit trick isolates the lowest set bit, which determines the tree structure. It's what makes updates and queries O(log n).
 
-#### Smart Prerendering During Idle Time
+### Smart Prerendering During Idle Time
 
 We don't just render visible items—we prerender nearby items during browser idle time:
 
@@ -425,7 +363,7 @@ requestIdleCallback(() => {
 
 This means when users scroll, the items are often already rendered, making scrolling buttery smooth.
 
-#### Memory Comparison
+### Memory Comparison
 
 | Items | Naive DOM Rendering | VList |
 |-------|---------------------|-------|
@@ -445,7 +383,7 @@ This means when users scroll, the items are often already rendered, making scrol
 
 ---
 
-### 5. Query Merging for Metric Graphs — **MEDIUM-HIGH IMPACT**
+## 5. Query Merging for Metric Graphs — **MEDIUM-HIGH IMPACT**
 
 **Problem:** Dashboard pages with multiple graphs sent individual queries for each metric, causing N round trips and redundant data scanning.
 
@@ -456,7 +394,7 @@ This means when users scroll, the items are often already rendered, making scrol
 - Server timing headers to expose per-query performance
 - Metric evaluator that batches compatible queries
 
-#### The Problem: Death by a Thousand Queries
+### The Problem: Death by a Thousand Queries
 
 A typical dashboard might show:
 - CPU usage by host (5 hosts)
@@ -469,7 +407,7 @@ That's 23 separate queries! Each one:
 2. Scans overlapping time partitions
 3. Competes for ClickHouse resources
 
-#### The Solution: Query Batching by Merge Key
+### The Solution: Query Batching by Merge Key
 
 We identify queries that differ only in the metric name but share everything else:
 
@@ -514,7 +452,7 @@ WHERE host IN ('h1','h2','h3','h4','h5')
 GROUP BY host, time
 ```
 
-#### Real-World Impact
+### Real-World Impact
 
 | Dashboard Type | Queries Before | Queries After | Reduction |
 |----------------|---------------|---------------|-----------|
@@ -530,7 +468,7 @@ GROUP BY host, time
 
 ---
 
-### 6. Query Profiler and Visibility Tooling — **MEDIUM IMPACT (ENABLER)**
+## 6. Query Profiler and Visibility Tooling — **MEDIUM IMPACT (ENABLER)**
 
 **Problem:** Engineers couldn't see query execution details, making it impossible to identify bottlenecks or validate optimizations.
 
@@ -544,7 +482,7 @@ GROUP BY host, time
 - AI analysis of query log profiles
 - Downloadable HTML reports for sharing
 
-#### What the Profiler Shows
+### What the Profiler Shows
 
 Every log search now has a "Profile" button that reveals:
 
@@ -572,7 +510,7 @@ Every log search now has a "Profile" button that reveals:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-#### The EXPLAIN Plan View
+### The EXPLAIN Plan View
 
 Clicking "View EXPLAIN Plan" shows the actual ClickHouse execution plan:
 
@@ -599,7 +537,7 @@ This makes it immediately obvious:
 - How much data is being scanned?
 - Which indexes are helping?
 
-#### Query-Session Correlation
+### Query-Session Correlation
 
 Every query now includes a comment that links it to the user session:
 
@@ -625,3 +563,7 @@ This allows us to find any query in ClickHouse's `system.query_log` and correlat
 ## Summary
 
 These six optimizations transformed our log search from timing out on large queries to delivering sub-second results. The key insight wasn't any single technique—it was the combination of making performance visible through tooling, then systematically attacking bottlenecks at every layer: smarter query routing with bloom filters, tiered data architecture for different access patterns, streaming to eliminate perceived latency, virtual rendering to handle massive result sets, query batching to reduce round trips, and profiling to keep us honest. Time-to-first-result improved from 5-30 seconds to under 500ms. Large query timeouts dropped by 95%. The UI now handles 300K log lines without breaking a sweat. Most importantly, we built the infrastructure to keep iterating—because performance is never "done," it's a continuous battle that requires constant visibility.
+
+---
+
+**Back to:** [The Art of Making Performance Problems Impossible to Ignore](performance-stories.html) — The stories behind why visibility is the key to performance work.
