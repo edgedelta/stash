@@ -97,12 +97,6 @@ if estimatedScan > uint64(float64(rowsTotal) * 10.0) {
 }
 ```
 
-**Commits:**
-- `a8779b1d` - Add routing logic + hasToken optimization (+1,815 lines)
-- `9bfe0a8a` - Change token rarity dependent routing logic
-- `01f72ddf` - Utilize hasToken and prewhere optimization (+591 lines)
-- `6621e9b1` - Change tokenizer code to mimic ClickHouse exactly
-
 **Impact:** 5-10x improvement on searches with selective tokens; eliminates full table scans for most queries.
 
 ---
@@ -169,13 +163,6 @@ A 1% sample table is 100x smaller—queries that would scan 100GB now scan 1GB, 
 | Search "error" | Last 24h | Sample → Raw | Quick scan, then drill down |
 | Facet counts | Any | Agg | Pre-computed, instant |
 | Time series graph | Last 7d | Agg | Pre-aggregated rollups |
-
-**Commits:**
-- `daa93e36` - Support hitting agg and sample tables for logs (+1,607 lines)
-- `6fd3cfbb` - Add sample table based routing
-- `39175acd` - Add ability to fetch facet keys from cache + agg table
-- `b18c324e` - Add sampling factor multiplication to db query
-- `688190904` - Add routing to facet_graph endpoint
 
 **Impact:** Orders of magnitude improvement for wide time-range queries (hours to days); reduced memory pressure on ClickHouse.
 
@@ -255,13 +242,6 @@ The key insight: `X-Accel-Buffering: no` is crucial—without it, nginx will buf
 | Query with no results | 10s wait, then empty | 500ms "no results" |
 
 Users can start analyzing results immediately. If the first results aren't what they want, they can refine the query without waiting for completion.
-
-**Commits:**
-- `b8f5ea5e` - Introduce SSE to log search API (+647 lines)
-- `87ddac75` - Implement log search row-by-row streaming
-- `733c20da` - Use compression on log search streaming
-- `f226ad5d` - Add streaming log search service (frontend)
-- `f3b14d76` - UX fixes for log search streaming
 
 **Impact:** Time-to-first-result improved from 5-30s to <500ms; eliminated timeout errors for large result sets.
 
@@ -372,13 +352,6 @@ This means when users scroll, the items are often already rendered, making scrol
 | 100,000 | Browser crash | 15MB |
 | 300,000 | N/A | 25MB |
 
-**Commits:**
-- `7b91b8bf` - Log table and VList performance improvements (+2,889 lines)
-- `cf97d41c` - Implement custom fast table component for log search (+943 lines)
-- `3513dba7` - Add VList inspector page and improve performance
-- `1b6861f0` - VList performance improvements and component tests
-- `05f7ef6d` - Implement lazy rendering for VList
-
 **Impact:** UI now handles 100K+ log lines without jank; memory usage reduced by 80% for large result sets.
 
 ---
@@ -459,10 +432,6 @@ GROUP BY host, time
 | Host Overview (10 hosts) | 30 | 6 | 80% |
 | Service Dashboard | 45 | 12 | 73% |
 | Multi-metric comparison | 20 | 4 | 80% |
-
-**Commits:**
-- `6811eb9e` - Speed-up metric graph requests by merging multiple queries (+4,705 lines)
-- `fb7fab68` - Merge multiple graph queries together
 
 **Impact:** Dashboard load times reduced by 40-60% for pages with multiple graphs.
 
@@ -547,14 +516,6 @@ SELECT ...
 ```
 
 This allows us to find any query in ClickHouse's `system.query_log` and correlate it back to user actions.
-
-**Commits:**
-- `c256cecf` - Introduce log search profile button (+1,786 lines)
-- `7f828bc0` - Add explain button for query plans
-- `7edf665e` - Introduce schema fetching for query profiler
-- `cbf89eff` - Add TTFI metric for query profiler waterfall
-- `d3c86795` - Add AI analysis query log profiles
-- `735b0187` - Add log comment section to correlate queries to session
 
 **Impact:** Enabled all other optimizations by making query performance visible; reduced debugging time from hours to minutes.
 
