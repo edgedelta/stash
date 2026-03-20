@@ -16,9 +16,7 @@ Below is a comprehensive compilation of the performance improvements made to Log
 
 ```sql
 SELECT * FROM logs
-WHERE body LIKE '%connection%'
-  AND body LIKE '%refused%'
-  AND body LIKE '%error%'
+WHERE body LIKE '%connection refused error%'
 ```
 
 This scans every row because LIKE patterns can't use bloom filter indexes.
