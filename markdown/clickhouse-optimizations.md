@@ -31,7 +31,7 @@ PREWHERE hasToken(ibody, 'connection')
 WHERE position(body, 'connection refused error') > 0
 ```
 
-The `hasToken()` function uses ClickHouse's bloom filter indexes—these are probabilistic data structures that can quickly tell us "this block definitely doesn't contain this token" without reading the actual data. This eliminates 90%+ of data blocks before we even start scanning.
+The `hasToken()` function uses ClickHouse's bloom filter indexes. These are probabilistic data structures that can quickly tell us "this block definitely doesn't contain this token" without reading the actual data. This eliminates 90%+ of data blocks before we even start scanning.
 
 **Phase 2: WHERE with position() (Exact Match)**
 
@@ -153,7 +153,7 @@ if useSampleTable && samplingFactor > 1 {
 }
 ```
 
-A 1% sample table is 100x smaller—queries that would scan 100GB now scan 1GB, with statistically accurate results for aggregations.
+A 1% sample table is 100x smaller, so queries that would scan 100GB now scan 1GB, with statistically accurate results for aggregations.
 
 ### Smart Routing Based on Query Type
 
@@ -170,7 +170,7 @@ A 1% sample table is 100x smaller—queries that would scan 100GB now scan 1GB, 
 
 ## 3. Server-Sent Events (SSE) Streaming for Log Search — **HIGH IMPACT**
 
-**Problem:** Large result sets caused timeouts and poor UX—users waited for entire query completion before seeing any results.
+**Problem:** Large result sets caused timeouts and poor UX because users waited for entire query completion before seeing any results.
 
 **Solution:** Implemented row-by-row SSE streaming that sends results as they're fetched from ClickHouse. Users see first results in milliseconds, with continuous streaming until completion.
 
@@ -231,7 +231,7 @@ func (s *sseWriter) sendEvent(event string, data any) error {
 }
 ```
 
-The key insight: `X-Accel-Buffering: no` is crucial—without it, nginx will buffer the entire response, defeating the purpose of streaming.
+The key insight: `X-Accel-Buffering: no` is crucial. Without it, nginx will buffer the entire response, defeating the purpose of streaming.
 
 ### Why This Matters for UX
 
@@ -275,7 +275,7 @@ function getItemAtOffset(offset) {
 }
 ```
 
-With 300K items of variable height, this becomes a performance nightmare—every scroll event triggers O(n) calculations.
+With 300K items of variable height, this becomes a performance nightmare because every scroll event triggers O(n) calculations.
 
 ### The Fenwick Tree Solution
 
@@ -331,7 +331,7 @@ The magic of `i & -i`: This bit trick isolates the lowest set bit, which determi
 
 ### Smart Prerendering During Idle Time
 
-We don't just render visible items—we prerender nearby items during browser idle time:
+We don't just render visible items. We also prerender nearby items during browser idle time:
 
 ```typescript
 // Request idle callback for prerendering
@@ -523,8 +523,8 @@ This allows us to find any query in ClickHouse's `system.query_log` and correlat
 
 ## Summary
 
-These six optimizations transformed our log search from timing out on large queries to delivering sub-second results. The key insight wasn't any single technique—it was the combination of making performance visible through tooling, then systematically attacking bottlenecks at every layer: smarter query routing with bloom filters, tiered data architecture for different access patterns, streaming to eliminate perceived latency, virtual rendering to handle massive result sets, query batching to reduce round trips, and profiling to keep us honest. Time-to-first-result improved from 5-30 seconds to under 500ms. Large query timeouts dropped by 95%. The UI now handles 300K log lines without breaking a sweat. Most importantly, we built the infrastructure to keep iterating—because performance is never "done," it's a continuous battle that requires constant visibility.
+These six optimizations transformed our log search from timing out on large queries to delivering sub-second results. The key insight wasn't any single technique. It was the combination of making performance visible through tooling, then systematically attacking bottlenecks at every layer: smarter query routing with bloom filters, tiered data architecture for different access patterns, streaming to eliminate perceived latency, virtual rendering to handle massive result sets, query batching to reduce round trips, and profiling to keep us honest. Time-to-first-result improved from 5-30 seconds to under 500ms. Large query timeouts dropped by 95%. The UI now handles 300K log lines without breaking a sweat. Most importantly, we built the infrastructure to keep iterating because performance is never "done," it's a continuous battle that requires constant visibility.
 
 ---
 
-**Back to:** [The Art of Making Performance Problems Impossible to Ignore](performance-stories.html) — The stories behind why visibility is the key to performance work.
+**Back to:** [The Art of Making Performance Problems Impossible to Ignore](performance-stories.html). The stories behind why visibility is the key to performance work.
